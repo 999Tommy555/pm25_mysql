@@ -93,12 +93,62 @@
                 width: 100%;
             }
         }
+
+        #main {
+            margin: 0 auto;
+        }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0/dist/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
 </head>
 
 <body>
     <h1>pm2.5數據列表</h1>
     <a href="/update-db">更新資料庫</a>
+
+    <div id="main" style="width: 600px;height:400px;"></div>
+
+
+    <script type="text/javascript">
+        var myChart = echarts.init(document.getElementById('main'));
+
+
+        $.ajax(
+            {
+                url: "/avg-pm25",
+                type: "GET",
+                dataType: "json",
+                success: (result) => {
+                    console.log(result);
+                    var option = {
+                        title: {
+                            text: '縣市pm2.5平均值'
+                        },
+                        tooltip: {},
+                        legend: {
+                            data: ['PM2.5']
+                        },
+                        xAxis: {
+                            data: result["county"]
+                        },
+                        yAxis: {},
+                        series: [
+                            {
+                                name: 'PM2.5',
+                                type: 'bar',
+                                data: result["pm25"]
+                            }
+                        ]
+                    };
+                    myChart.setOption(option);
+                },
+            }
+        );
+    </script>
+
+
     <div id="tableContainer">
         <table border="1">
             <thead>
