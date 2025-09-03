@@ -74,7 +74,7 @@ def write_data_to_mysql():
     try:
         open_db()
         size = write_to_sql()
-        return {"結果": "success", "size": size}
+        return {"結果": "success", "寫入筆數": size}
 
     except Exception as e:
         print(e)
@@ -113,6 +113,30 @@ def get_data_from_mysql():
         cursor.execute(sqlstr)
         datas = cursor.fetchall()
 
+        sqlstr = "select distinct county from pm25;"
+        cursor.execute(sqlstr)
+        countys = [county[0] for county in cursor.fetchall()]
+
+        return datas, countys
+    except Exception as e:
+        print(e)
+    finally:
+        close_db()
+
+    return None
+
+
+def get_pm25_by_county(county):
+    try:
+        open_db()
+        sqlstr = """
+        select site,pm25,datacreationdate from pm25
+        where county=%s
+        and datacreationdate=(select max(datacreationdate) from pm25);
+        """
+        cursor.execute(sqlstr, (county,))
+        datas = cursor.fetchall()
+
         return datas
     except Exception as e:
         print(e)
@@ -123,5 +147,6 @@ def get_data_from_mysql():
 
 
 if __name__ == "__main__":
-    write_data_to_mysql()
-    print(get_avg_pm25_from_mysql())
+    # write_data_to_mysql()
+    # print(get_avg_pm25_from_mysql())
+    print(get_data_from_mysql())

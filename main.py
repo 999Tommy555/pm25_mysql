@@ -1,6 +1,11 @@
 from flask import Flask, render_template, Response
 from datetime import datetime
-from pm25 import get_data_from_mysql, write_data_to_mysql, get_avg_pm25_from_mysql
+from pm25 import (
+    get_data_from_mysql,
+    write_data_to_mysql,
+    get_avg_pm25_from_mysql,
+    get_pm25_by_county,
+)
 import json
 
 books = {
@@ -25,6 +30,38 @@ books = {
 app = Flask(__name__)
 
 
+@app.route("/county-pm25/<county>")
+def get_county_pm25(county):
+    result = get_pm25_by_county(county)
+
+    if len(result) == 0:
+        return Response(
+            json.dumps(
+                {"result": "資料取得失敗", "message": f"無此{county}縣市"},
+                ensure_ascii=False,
+            )
+        )
+
+    site = [r[0] for r in result]
+    pm25 = [float(r[1]) for r in result]
+    datetime = result[0][2].strftime("%Y-%m-%d %H:%M:%S")
+    print(datetime)
+
+    return Response(
+        json.dumps(
+            {
+                "county": county,
+                "count": len(site),
+                "datetime": datetime,
+                "site": site,
+                "pm25": pm25,
+            },
+            ensure_ascii=False,
+        ),
+        mimetype="application/json",
+    )
+
+
 @app.route("/avg-pm25")
 def get_avg_pm25():
     result = get_avg_pm25_from_mysql()
@@ -47,11 +84,10 @@ def update_db():
 
 @app.route("/pm25")
 def get_pm25():
-
-    values = get_data_from_mysql()
+    values, countys = get_data_from_mysql()
     print(values)
     columns = ["站點名稱", "縣市", "PM2.5", "更新時間", "單位"]
-    return render_template("pm25.html", values=values, columns=columns)
+    return render_template("pm25.html", values=values, columns=columns, countys=countys)
 
 
 @app.route("/bmi/height=<h>&weight=<w>")
