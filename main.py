@@ -82,6 +82,7 @@ def update_db():
     return json.dumps(result, ensure_ascii=False)
 
 
+@app.route("/")
 @app.route("/pm25")
 def get_pm25():
     values, countys = get_data_from_mysql()
@@ -115,10 +116,10 @@ def now_time():
     return time
 
 
-@app.route("/")
 def index():
     time = now_time()
     return render_template("index.html", x=time, name="Tommy")
 
 
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
